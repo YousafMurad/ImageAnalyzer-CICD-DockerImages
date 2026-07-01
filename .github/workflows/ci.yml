@@ -39,3 +39,25 @@ jobs:
       - name: Show Installed Models
         run: |
           docker exec ollama ollama list
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Requirements
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create Output Folder
+        run: mkdir -p output
+
+      - name: Process Image
+        run: python scripts/process_image.py
+
+      - name: Upload Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-result
+          path: output/result.json
