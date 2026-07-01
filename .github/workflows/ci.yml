@@ -12,9 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Show Docker Version
-        run: docker --version
-
       - name: Start Ollama
         run: |
           docker run -d \
@@ -24,23 +21,21 @@ jobs:
 
       - name: Wait for Ollama
         run: |
-          echo "Waiting for Ollama..."
-
           for i in {1..30}; do
             if curl -s http://localhost:11434 > /dev/null; then
               echo "Ollama is ready!"
               exit 0
             fi
-
             sleep 2
           done
 
-          echo "Ollama failed to start."
           docker logs ollama
           exit 1
 
-      - name: Show Running Containers
-        run: docker ps
+      - name: Pull Vision Model
+        run: |
+          docker exec ollama ollama pull llama3.2-vision
 
-      - name: Show Ollama Logs
-        run: docker logs ollama
+      - name: Show Installed Models
+        run: |
+          docker exec ollama ollama list
