@@ -6,15 +6,17 @@ on:
       - main
 
 jobs:
-
-  test:
-
+  docker-test:
     runs-on: ubuntu-latest
 
     steps:
-
       - uses: actions/checkout@v4
 
-      - name: Hello
+      - name: Show Docker Version
+        run: docker --version
 
-        run: echo "GitHub Actions is working!"
+      - name: Run Hello World Container
+        run: docker run hello-world
+
+      - name: List Running Containers
+        run: docker ps -a
