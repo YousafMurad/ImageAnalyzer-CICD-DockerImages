@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  docker-test:
+  ollama-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,8 +15,32 @@ jobs:
       - name: Show Docker Version
         run: docker --version
 
-      - name: Run Hello World Container
-        run: docker run hello-world
+      - name: Start Ollama
+        run: |
+          docker run -d \
+            --name ollama \
+            -p 11434:11434 \
+            ollama/ollama
 
-      - name: List Running Containers
-        run: docker ps -a
+      - name: Wait for Ollama
+        run: |
+          echo "Waiting for Ollama..."
+
+          for i in {1..30}; do
+            if curl -s http://localhost:11434 > /dev/null; then
+              echo "Ollama is ready!"
+              exit 0
+            fi
+
+            sleep 2
+          done
+
+          echo "Ollama failed to start."
+          docker logs ollama
+          exit 1
+
+      - name: Show Running Containers
+        run: docker ps
+
+      - name: Show Ollama Logs
+        run: docker logs ollama
