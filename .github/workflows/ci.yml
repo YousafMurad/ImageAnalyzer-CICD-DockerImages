@@ -9,8 +9,14 @@ jobs:
   ollama-test:
     runs-on: ubuntu-latest
 
+    env:
+      OLLAMA_URL: http://localhost:11434
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Show Docker Version
+        run: docker --version
 
       - name: Start Ollama
         run: |
@@ -21,11 +27,14 @@ jobs:
 
       - name: Wait for Ollama
         run: |
+          echo "Waiting for Ollama..."
+
           for i in {1..30}; do
             if curl -s http://localhost:11434 > /dev/null; then
               echo "Ollama is ready!"
               exit 0
             fi
+
             sleep 2
           done
 
@@ -40,6 +49,20 @@ jobs:
         run: |
           docker exec ollama ollama list
 
+      - name: Test Ollama Text Generation
+        run: |
+          curl http://localhost:11434/api/generate \
+          -d '{
+            "model":"llama3.2-vision",
+            "prompt":"Say Hello",
+            "stream":false
+          }'
+
+      - name: Show Repository Files
+        run: |
+          pwd
+          ls -R
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -50,14 +73,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Create Output Folder
-        run: mkdir -p output
-
       - name: Process Image
         run: python scripts/process_image.py
 
+      - name: Show Ollama Logs
+        if: always()
+        run: docker logs ollama
+
       - name: Upload Result
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ai-result
-          path: output/result.json
+          path: output/
