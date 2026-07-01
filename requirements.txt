@@ -1,1 +1,6 @@
+transformers
+torch
+torchvision
+pillow
+accelerate
 requests
