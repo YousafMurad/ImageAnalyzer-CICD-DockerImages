@@ -14,15 +14,18 @@ if not os.path.exists(IMAGE_PATH):
     sys.exit(1)
 
 print("Loading image captioning model...")
+# Updated task to 'image-text-to-text' to match latest Transformers registry
 pipe = pipeline(
-    "image-to-text",
+    "image-text-to-text",
     model="Salesforce/blip-image-captioning-base"
 )
 print("Model loaded successfully!")
 
 print(f"Processing image: {IMAGE_PATH}...")
 image = Image.open(IMAGE_PATH).convert("RGB")
-raw_results = pipe(image)
+
+# For image-text-to-text, pass the image and keep text prompt empty for raw captioning
+raw_results = pipe(image, text="")
 
 # Format into structured JSON
 result_data = {
