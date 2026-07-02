@@ -28,17 +28,18 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          key: pip-v2-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
           restore-keys: |
-            pip-${{ runner.os }}-
+            pip-v2-${{ runner.os }}-
 
+      # Updated the key to 'hf-models-layoutlm-v2-'
       - name: Cache Hugging Face Models
         uses: actions/cache@v4
         with:
           path: ~/.cache/huggingface
-          key: hf-models-layoutlm-${{ runner.os }}-${{ hashFiles('scripts/process_image.py') }}
+          key: hf-models-layoutlm-v2-${{ runner.os }}-${{ hashFiles('scripts/process_image.py') }}
           restore-keys: |
-            hf-models-layoutlm-${{ runner.os }}-
+            hf-models-layoutlm-v2-${{ runner.os }}-
 
       # Light-weight CPU mode configuration for rapid runner setups
       - name: Install Requirements
