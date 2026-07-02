@@ -18,7 +18,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      # 1. Cache python dependencies (including heavy torch packages)
+      # Install Tesseract engine binary so LayoutLM can fall back on text bounding boxes
+      - name: Install System OCR Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr
+
       - name: Cache pip packages
         uses: actions/cache@v4
         with:
@@ -27,27 +32,23 @@ jobs:
           restore-keys: |
             pip-${{ runner.os }}-
 
-      # 2. Cache Hugging Face models so they don't re-download every build
       - name: Cache Hugging Face Models
         uses: actions/cache@v4
         with:
           path: ~/.cache/huggingface
-          key: hf-models-${{ runner.os }}-${{ hashFiles('scripts/process_image.py') }}
+          key: hf-models-layoutlm-${{ runner.os }}-${{ hashFiles('scripts/process_image.py') }}
           restore-keys: |
-            hf-models-${{ runner.os }}-
+            hf-models-layoutlm-${{ runner.os }}-
 
-      # 3. Use the light CPU version of PyTorch to drastically speed up install times
+      # Light-weight CPU mode configuration for rapid runner setups
       - name: Install Requirements
         run: |
           python -m pip install --upgrade pip
           pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
 
-      - name: Show Repository Files
-        run: |
-          pwd
-          ls -R
-
       - name: Run AI Script
+        env:
+          HF_HUB_DISABLE_IMPLICIT_TOKEN: "1"
         run: python scripts/process_image.py
 
       - name: Upload Results
