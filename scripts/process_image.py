@@ -1,76 +1,39 @@
-# import os
-# import json
-# import base64
-# import requests
-# import sys
-
-# OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
-# IMAGE_PATH = "images/invoice.jpg"
-
-# print("========== AI Image Processing ==========")
-# print(f"Ollama URL: {OLLAMA_URL}")
-# print(f"Image Path: {IMAGE_PATH}")
-
-# # Check image exists
-# if not os.path.exists(IMAGE_PATH):
-#     print(f"ERROR: Image not found: {IMAGE_PATH}")
-#     sys.exit(1)
-
-# print("Reading image...")
-
-# with open(IMAGE_PATH, "rb") as f:
-#     image = base64.b64encode(f.read()).decode()
-
-# print("Sending request to Ollama...")
-
-# payload = {
-#     "model": "llama3.2-vision",
-#     "stream": False,
-#     "messages": [
-#         {
-#             "role": "user",
-#             "content": """
-# Describe this image.
-
-# Return ONLY valid JSON.
-
-# {
-#     "description":"",
-#     "summary":""
-# }
-# """,
-#             "images": [image]
-#         }
-#     ]
-# }
-
-# response = requests.post(
-#     f"{OLLAMA_URL}/api/chat",
-#     json=payload
-# )
-
-# print("\n========== RESPONSE ==========")
-# print("Status Code:", response.status_code)
-# print(response.text)
-
-# if response.status_code != 200:
-#     sys.exit(1)
-
-# result = response.json()
-
-# os.makedirs("output", exist_ok=True)
-
-# with open("output/result.json", "w") as f:
-#     json.dump(result, f, indent=2)
-
-# print("\nSaved output/result.json")
+import os
+import json
 from transformers import pipeline
+from PIL import Image
+
+IMAGE_PATH = "images/invoice.jpg"
+OUTPUT_DIR = "output"
+OUTPUT_FILE = os.path.join(OUTPUT_DIR, "result.json")
+
+print("========== AI Image Processing ==========")
+if not os.path.exists(IMAGE_PATH):
+    print(f"ERROR: Image not found: {IMAGE_PATH}")
+    import sys
+    sys.exit(1)
 
 print("Loading image captioning model...")
-
 pipe = pipeline(
     "image-to-text",
     model="Salesforce/blip-image-captioning-base"
 )
-
 print("Model loaded successfully!")
+
+print(f"Processing image: {IMAGE_PATH}...")
+image = Image.open(IMAGE_PATH).convert("RGB")
+raw_results = pipe(image)
+
+# Format into structured JSON
+result_data = {
+    "file_processed": IMAGE_PATH,
+    "predictions": raw_results,
+    "summary": raw_results[0].get("generated_text", "") if raw_results else ""
+}
+
+# Ensure output directory exists and write results
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+with open(OUTPUT_FILE, "w") as f:
+    json.dump(result_data, f, indent=2)
+
+print(f"Successfully saved results to {OUTPUT_FILE}")
